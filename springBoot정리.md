@@ -62,3 +62,75 @@ dependencies {
 - 그레이들 5.x.x버전에서 Querydsl과 롬복관련된 플러그인 설정방법이 변경 되어서 오류가 뜨는 것으로 확인.
 1. alt+F12 (윈도우/맥 동일) 키로 해당 프로젝트 기준으로 터미널 생성
 2. gradlew wrapper --gradle-version 4.10.2
+
+
+----
+
+##3. 스프링부트에서  JPA로 데이터베이스 다루기
+
+1. build.gradle에 Spring Data JPA 관련된 라이브러리 입력
+2. Entity가 되는 것의 어노테이션들
+    - @Entity
+        - 테이블과 링크될 클래스 임을 나타냄.
+        - 기본적으로 클래스의 카멜케이스 이름을 언더스코어네이밍(_)을 사용해 테이블 이름을 매칭함.
+    - @Id
+        - 해당 테이블의 PK필드를 나타냄
+    - @GeneratedValue
+        - PK생성 규칙을 나타냄
+        - 스프링부트2.0에서부터는 GenerationType.IDENTITY 옵션을 추가해야 auto increment가 됨
+    - @Column
+        - 테이블의 컬럼을 나타내며 굳이 선언하지 않더라도 엔티티클래스의 필드는 컬럼이 됨.
+        - 사용하는 이유는, 기본값 외에 추가로 변경이 필요한 옵션이 있으면 사용함.
+        - ex. 문자열의 경우 varchar(255)가 기본인데, 사이즈를 늘리고 싶거나, 타입을 text로 변경하고 싶거나 등에 사용함
+    - @NoAgrsContructor
+        - 기본 생성자 자동 추가
+        - public Post(){} 랑 같음
+    - @Getter
+        - 클래스 내 모든 필드의 getter 메소드 자동 추가
+    - @Builder 
+        - 해당 클래스의 빌더 패턴 클래스를 지정.
+        - 생성자 상단에 선언 시, 생성자에 포함된 필드만 빌더에 포함
+
+*** Entity 클래스에서는 절대 Setter 메소드를 만들지 않는다.
+인스턴스의 값이 언제 어디서 변경되는지 파악이 어려워지기 때문에...
+
+
+### JpaRepository 
+Database를 접근하게해줄 DB Layer를 얘기함
+생성 방법 : 인터페이스를 생성 후, JpaRepository<Entity 클래스, PK타입>을 상속함.
+Entity클래스와 기본 EntityRepository는 같은 위치해야함.
+
+### JpaRepositoryTests
+중요 어노테이션
+- @After
+    - 단위테스트가 끝날 때마다 수행되는 메소드를 지정
+    - 보통 배포 전 전체 테스트를 수행할 때, 테스트간 데이터 침범을 막기위해 사용함.
+
+- postRepository.save()
+    - 테이블에 insert/update 쿼리 실행함
+- postRepository.findAll()
+    - 테이블 posts에 있는 모든 데이터를 조회해오는 메소드
+
+### application.properties, application.yml
+스프링 부트 설정관련 옵션등을 작성함
+
+### 등록/수정/조회 API만들기
+API를 만들기 위해서 총 3개의 클래스가 필요함.
+
+- Request를 받을 Dto
+- API 요청을 받을 Controller
+- 트랜잭션, 도메인 기능 간의 순서를 보장하는 Service
+
+** 내가 알던 개념과 다른것..
+- Service에서 비즈니스 로젝을 처리해야 한다는 것은 잘못된 얘기..
+- Service는 트랜잭션, 도메인 간의 순서 보장의 역할을 해줘야함.
+
+#### Spring Web 계층의 레이어별 설명 (5레이어)
+- Web Layer
+- Service Layer
+- Repository Layer
+- Dtos
+- Domain Model
+
+비즈니스 처리를 담당해야 할 곳은 Domain.
+(기존 서비스로 처리하던 방식을 트랜잭션 스크립트라고 함.)
