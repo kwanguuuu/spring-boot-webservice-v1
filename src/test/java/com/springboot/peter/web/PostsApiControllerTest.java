@@ -3,6 +3,7 @@ package com.springboot.peter.web;
 import com.springboot.peter.domain.posts.Posts;
 import com.springboot.peter.domain.posts.PostsRepository;
 import com.springboot.peter.web.dto.PostsSaveRequestDto;
+import com.springboot.peter.web.dto.PostsUpdateRequestDto;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,10 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
 
@@ -39,16 +41,18 @@ public class PostsApiControllerTest {
 
     @Test
     public void Posts_등록된다() {
+        //given
         String title = "title";
         String content = "content";
+
         PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
                 .title(title)
                 .content(content)
                 .author("author")
                 .build();
+        String url = "http://localhost:" + port + "/api/v1/posts/";
 
-        String url = "http://localhost:" + port + "/api/v1/posts";
-
+        //when
         ResponseEntity<Long> responseEntity = restTemplate.postForEntity(url, requestDto, Long.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -57,5 +61,43 @@ public class PostsApiControllerTest {
         List<Posts> all = postsRepository.findAll();
         assertThat(all.get(0).getTitle()).isEqualTo(title);
         assertThat(all.get(0).getContent()).isEqualTo(content);
+    }
+
+    @Test
+    public void post_수정() throws  Exception{
+        //given
+        Posts savePosts = postsRepository.save(Posts.builder()
+                    .title("title")
+                    .content("content")
+                    .author("author")
+                    .build());
+
+        System.out.println("savePosts........    " + savePosts.toString());
+
+        Long updateId = savePosts.getId();
+        String updateTitle = "update title";
+        String updateContent = "update Content";
+
+        PostsUpdateRequestDto requestDto = PostsUpdateRequestDto.builder()
+                    .title(updateTitle)
+                    .content(updateContent)
+                    .build();
+
+        System.out.println("requestDto........    " + requestDto);
+        System.out.println("updateId : " + updateId);
+        String url = "http://localhost:"+port+"/api/vi/posts/" + updateId;
+
+        HttpEntity<PostsUpdateRequestDto> requestEntity = new HttpEntity<>(requestDto);
+
+        //when
+        ResponseEntity<Long> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, Long.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isGreaterThan(0L);
+
+        List<Posts> all = postsRepository.findAll();
+        assertThat(all.get(0).getTitle()).isEqualTo(updateTitle);
+        assertThat(all.get(0).getContent()).isEqualTo(updateContent);
     }
 }
