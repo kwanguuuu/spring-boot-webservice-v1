@@ -5,7 +5,6 @@ import com.springboot.peter.web.dto.PostsResponseDto;
 import com.springboot.peter.web.dto.PostsSaveRequestDto;
 import com.springboot.peter.web.dto.PostsUpdateRequestDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
