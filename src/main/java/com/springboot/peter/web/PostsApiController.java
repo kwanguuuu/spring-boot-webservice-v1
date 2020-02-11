@@ -19,7 +19,7 @@ public class PostsApiController {
     }
 
     @PutMapping("/api/v1/posts/{id}")
-    public Long update(@PathVariable Long id, @RequestBody PostsUpdateRequestDto requestDto) {
+    public Long update(@PathVariable("id") Long id, @RequestBody PostsUpdateRequestDto requestDto) {
         System.out.println(id);
         return postsService.update(id, requestDto);
     }
@@ -28,6 +28,12 @@ public class PostsApiController {
     public PostsResponseDto get(@PathVariable Long id) {
         System.out.println(id);
         return postsService.findById(id);
+    }
+
+    @DeleteMapping("/api/v1/posts/{id}")
+    public Long delete(@PathVariable("id") Long id) {
+        postsService.delete(id);
+        return id;
     }
 
 }

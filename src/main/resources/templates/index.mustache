@@ -6,9 +6,30 @@
             <a href="/posts/save" role="button" class="btn btn-primary">
                 글 등록
             </a>
-
-            111
         </div>
     </div>
+    <br>
+    <!--  목록 출력   -->
+    
+    <table class="table table-horizontal table-boardered">
+        <thead class="thead-strong">
+        <tr>
+            <th>게시글번호</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>최종수정일</th>
+        </tr>
+        </thead>
+        <tbody id="tbody">
+        {{#posts}}
+        <tr>
+            <th>{{id}}</th>
+            <th><a href="/posts/update/{{id}}">{{title}}</a></th>
+            <th>{{author}}</th>
+            <th>{{modifiedDate}}</th>
+        </tr>
+        {{/posts}}
+        </tbody>
+    </table>
 </div>
 {{>layout/footer}}
