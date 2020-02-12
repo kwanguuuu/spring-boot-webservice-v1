@@ -169,3 +169,51 @@ API를 만들기 위해서 총 3개의 클래스가 필요함.
 2. build.gradle에 추가
     - 기본 파일 위치 : src/main/resources/templates
     - 기본적으로 머스테치 스타터로 인하여 src/main/resources/templates로, 확장자는 .mustache가 붙음 ( 뷰 리졸버 )
+    - 테스트
+
+
+### 게시물 등록 화면 만들기
+
+
+
+## 5. 스플이 시큐리티와 OAuth 2.0으로 로그인 구현하기
+직접 로그인 구현 시 개발해야 하는 기능 ( 스프렝 시큐리티로 구현해야 하는 것은 제외)
+- 로그인 보안
+- 비밀번호 찾기
+- 비밀번호 변경
+- 회원가입시 이메일 혹은 전화번호 인증
+- 회원정보 변경
+
+
+### 스프링 부트 1.5 vs 스프링 부트 2.0
+스프링부트 1.5 연동방법이 2.0에서 많이 변경되었지만, 설정방법에 크게 차이가 없음.
+spring-security-oauth2-autoconfigure 라이브러리이용.
+- spring-security-oauth2-autoconfigure 라이브러리 사용시, 스프링 부트2에서도 스프링 부트1.5에서 쓰던 설정을 그대로 할 수 있음.
+
+책에서 할 것
+Spring Security Oauth2 Client라이브 러리 사용
+이유
+- 기존 사용방식이 확장 포인트가 적절하게 오픈되어 있지 않아서, 직접 상속 또는 오버라이딩 해야하고, 신규 라이브러리의 경우 확장 포인트를 고려해 설계됨.
+- 스프링 부트2 방식의 자료를 찾고 싶으면 spring-security-oauth2-autoconfigure 라이브 러리 사용과 application.properties 또는 application.yml설정을 비교.
+    - 스프링부트 2: 클라이언트 인증정보만 입력
+    - 스프링부트 1.5 : url주소를 모두 명시함.
+
+-----
+
+### 구글 서비스 등록
+1. 구글클라우드에서, 프로젝트 신규 등록
+2. 생성한 프로젝트에서 API 및 서비스 이동 > 사용자 인증정보 >사용자 인증 정보 만들기
+3. OauthClientID만들기
+4. application-oauth등록 -> 설정 후 application.properties가 읽을 수 있도록 인클루드 시킴
+5. .gitignore등록
+
+6. 회원정보를 가질 EntityClass등록
+    - User.java
+    - Role.java(EnumClass)
+
+7. build.gradle에 의존성 추가해줌
+    - compile('org.springframework.boot:spring-boot-starter-oauth2-client)
+
+8. 시큐리티 관련 설정 시작.
+
+
