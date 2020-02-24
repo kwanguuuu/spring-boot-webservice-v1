@@ -1,5 +1,6 @@
 package com.springboot.peter.web;
 
+import com.springboot.peter.config.auth.LoginUser;
 import com.springboot.peter.config.auth.dto.SessionUser;
 import com.springboot.peter.domain.user.User;
 import com.springboot.peter.service.posts.PostsService;
@@ -21,11 +22,9 @@ public class IndexController {
     private final HttpSession httpSession;
 
     @GetMapping("/")
-    public String index(Model model) {
+    public String index(Model model, @LoginUser SessionUser user) {
         model.addAttribute("posts", postsService.findAllDesc());
         //userName을 사용할 수 있게 모델에 추가하는 코드 추가.
-        SessionUser user = (SessionUser) httpSession.getAttribute("user");
-
         if (user != null) {
             model.addAttribute("userName", user.getName());
         }
