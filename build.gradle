@@ -38,6 +38,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-devtools')            //mustache hot reload를 위한 라이브러리
     compile('com.h2database:h2')    //인메모리 관계형 데이터베이스
     compile('org.springframework.boot:spring-boot-starter-oauth2-client')   //소셜 로그인 등 소셜기능 구현시 필요한 의존성,
+    compile('org.springframework.session:spring-session-jdbc')          //spring-session-jdbc를 위한 설정
     testCompile('org.springframework.boot:spring-boot-starter-test')
 
 

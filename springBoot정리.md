@@ -216,4 +216,35 @@ Spring Security Oauth2 Client라이브 러리 사용
 
 8. 시큐리티 관련 설정 시작.
 
+### 스프링 시큐리티 설정
+1. build.gradle 에 스프링 시큐리티 관련 의존성 추가.
+2. WebSecurityConfigurerAdapter를 상속받는 설정 클래스 추가.
+    - @EnableWebSecurity
+        - csrf().disable().header().frameOptions().disable()
+        - authorizeRequest
+        - 
 
+
+### 로그인 테스트
+1. {{#userName}}
+-  머스태치는 다른언어와 같은 if문을 제공하지 않는다. true/false만 판단함
+- 머스태치에서는 항상 최종값을 넘겨줘야함.
+
+2. a href='/logout'
+- 스프링 시큐리티에서 기본적으로 제공하는 로그아웃 url
+- /logout은 컨트롤러를 만들 필요가 없음.
+
+3. {{^userName}}
+- 머스태치에서 해당 값이 존재하지 않을 땐 ^를 사용함.
+- userNameㅇ ㅣ없으면 , login을 보여지도록 설정
+
+4. a href='/oauth2/authorization/google'
+- 시큐리티에서 기본적으로 제공하는 로그인 url
+- 로그아웃과 마찬가지로 생성할 필요가 없음
+
+5. 로그인 코드를 어노테이션 기반으로 변경
+- LoginUser 인터페이스 생성과, LoginUserArgumentResolver 생성
+- LoginUserArgumentResolver는 HadlerMethodArgumentResolver를 구현하는 클래스.
+- supportsParameter 와  resolveArgument를 통해 파라미터에 값을 전달함.
+- WebMvcConfigurer 를 상속밭은 클래스를 구현해, LoginUserArgumentResolver를 추가함.
+- 필요한 부분에 controller 파라미터 추가.
