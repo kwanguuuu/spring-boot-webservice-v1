@@ -39,9 +39,11 @@ dependencies {
     compile('com.h2database:h2')    //인메모리 관계형 데이터베이스
     compile('org.springframework.boot:spring-boot-starter-oauth2-client')   //소셜 로그인 등 소셜기능 구현시 필요한 의존성,
     compile('org.springframework.session:spring-session-jdbc')          //spring-session-jdbc를 위한 설정
+    compile('org.mariadb.jdbc:mariadb-java-client')                     //maridDB 드라이버 추가
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     //스프링 시큐리티 테스트를 위하여 추가.
     testCompile('org.springframework.security:spring-security-test')
+
 
 }
