@@ -248,3 +248,140 @@ Spring Security Oauth2 Client라이브 러리 사용
 - supportsParameter 와  resolveArgument를 통해 파라미터에 값을 전달함.
 - WebMvcConfigurer 를 상속밭은 클래스를 구현해, LoginUserArgumentResolver를 추가함.
 - 필요한 부분에 controller 파라미터 추가.
+
+### 로그인 세션 저장소를 db로 변경하기
+1. 세션 저장을 위한 방식
+- 톰캣(was) 세션 사용
+    - 기본적인 방식
+    - 2대 이상의 was 사용시 별도의 was 동기화 처리가 필요함.
+- db세션 저장소로 사용
+    - 여러 was 간의 공용 저장소로 사용 가능 (IO발생)
+    - 백오피스에서 많이 사용하는 방식
+- 메모리 db를 세션 저장소로 사용
+    - b2c서비스에서 가장 많이 사용하는 방식
+    - 실제 서비스로 사용하기 위해선 외부 메모리 서버가 필요함.
+
+
+2. spring-session-jdbc 등록
+- build.gradle에 spring-session-jdbc패키지 추가
+- application.yml에 spring.session.store-type=jdbc추가
+- h2 콘솔 확인.
+    - Spring-session, SPRING-SESSION-ATTRIBUTES 테이블 확인.
+### 네이버 로그인 추가
+
+### 기존 테스트에 스프링 시큐리티 추가하기
+- 시큐리티 옵션이 활성화 되면, 인증된 사용자만 API를 호출할 수 있음 -> 테스트 코드가 실행되지 않음.
+밑의 항목들은 문제가 되는 부분들임. 시큐리티 적용후 테스트 하려면 확인해야함
+1. CustomOAuth2UserService를 찾지 못함
+    - No qualifying bean of type 'com.springboot.peter.config.auth.CustomOAuth2UserService'
+    - 소셜로그인 값이 없기 떄문에 발생함. (src/main 과 src/test의 설정이 다르기 때문에.)
+    - 테스트 환경을 위한 application.properties를 만듦
+
+2. status 302
+- 302: 리다이렉션 응답. 인증되지 않은 사용자의 요청을 이동시키기 때문에.
+- build.gradle에 스프링 시큐리티 관련된 의존선 추가함.
+- PostsApiControllerTest의 테스트에 임의 사용자 인증 추가
+
+3. @WebMvcTest에서 CustomerOAuth2UserService를 찾을수 없음.
+
+
+### AWS환경 만들기
+1. 인스턴스 생성(EC2)
+- Elastic Compute Clouse (ECC -> EC2)
+- ec2 인스턴스 시작
+- AMI생성(AMI1 -> 센토스6, AMI2 ->센토스7버전으로 사용)
+- 규칙등 설정(보안규칙 중요)
+
+2. 인스턴스 고정 아이피 할당(EIP)
+- 인스턴스의 고정 아이피를 EIP라고함(Elastic IP)
+
+3. ec2에 접속하기 위해선..
+- ssh : ssh -i pem 키 위치 ec2탄력ip 를 입력해줘야함
+
+4. 간편하게 ec2접속하기
+    1. ~/.ssh/에 key.pem 복사해 이동해놓기
+    2.  ~/.ssh/config 편집
+    ```
+    Host 본인이 원하는 호스트명
+        HostName ec2의 탄력적 주소
+        User ec2-user
+        IdentifyFile ~/.ssh/pem키 이름
+    ```
+    3. chmod 700 ~/.ssh/config -> 실행권한 부여
+
+### 아마존 리눅스 1 사용시 부여할 설정
+- java8설치
+- 타임존 변경
+- 호스트네임변경
+
+1. 자바8 설치
+- sudo yum install -y java-1.8.0-openjdk-devel.x86_64
+- 자바 버전8로 변경
+    - /usr/sbin 의 alternatives --config java 명령 실해ㅑㅇ
+    - 자바를 8로 변경
+    - java 7 삭제
+
+2. 타임존 설정
+- UTC인 시간을 KST(한국시간)으로 변경
+    - date 명령 입력 시, UTC인것 확인
+    - sudo -s ln /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+        - ln : 하드링크나 심볼릭 링크를 만들기 위한 명령어
+        - ln -s : 심볼릭 링크를 만듦.
+
+3. 호스트네임 변경
+- ip로는 뭐하는 건지 잘 몰라서... 호스트이름을 주자
+- /etc/sysconfig/network 파일이 호스트네임 관련된 정보를 가지고 있음
+- sudo vim /etc/sysconfig/network 를 수정
+- /etc/hosts 에 방금 등록한 hostname을 등록
+
+### RDS 설정
+1. RDS를 MariaDB를 설정해서 생성하기
+    - 가격이 저렴
+    - Amazon Aurora로 교체 용이함.
+- 설정 중, 네트워크 : 퍼블릭 엑세스 가능하도록 변경
+
+2. 운영에 맞는 파라미터 설정하기
+- 아래의  항목들을 설정해줘야함.
+    - 타임존
+    - CharacterSet
+    - Max Connection 
+- 파라미터 그룹으로 이동
+    - 설정할 파라미터그룹 생성
+    - 파라미터 생성 후, time_zone 검색 후 설정
+    1. timezone : 검색 후, asia/seoul로 변경
+    2. 캐릭터 셋 설정
+        - character-set-* : utf8mb4로 변경
+        - collation_server,collation_connect : utf8mb4_general_ci로 변경
+            - 안될 경우 재부팅 하구 해봐라
+    3. max connection  설정
+
+3. pc에서 RDS접속 가능하도록 설정하기.
+
+- rds보안 그룹에 로컬 PC IP추가하기.
+    - 인바운드 규칙에 로컬,  EC2 추가하기
+
+4. 인텔리제이에 DB 연결 할 수 있을 설정
+- 엔드포인트 설정 :aws-rds.czilemscsp9n.ap-northeast-2.rds.amazonaws.com
+
+
+### 인텔리J 에서 DB 연결 설정하기
+
+### ec2 에서 rds에 설치된 MySQL접속하기
+- CLI 설치
+    - sudo yum install mysql
+- 로컬에서 접속하 듯, rds의 게정, 비밀번호, 호스트주소 사용해 rds 접속하기
+    - inbound규칙이 잘 적용되었으면 접속 될 것
+    -mysql -u kwanguuuu -p -h aws-rds.czilemscsp9n.ap-northeast-2.rds.amazonaws.com
+
+### ec2에 프로젝트 배포
+- 소스 가져올 수 있도록 git 설치
+- sudo yum install git
+- git --version
+- 프로젝트 가져올 폴더 만들기.. mkdir ~/app/test
+
+### 배포 스크립트 만들기
+배포란?
+    - 새 버전의 프로젝트를 받음 (git clone, git pull 등)
+    - gradle이나 maven을 통해 프로젝트 테스트
+    - ec2서버에서 해당 프로젝트 실행 및 재실행
+=> 위의 과정을 쉘 스크립트를 작성해 해보자.
