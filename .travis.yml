@@ -13,6 +13,23 @@ cache:
     - '$HOME/.gradle'
 script: "./gradlew clean build"
 
+#s3 deploy 관련
+before_deploy:
+  - zip -r spring-boot-webservice *
+  - mkdir -p deploy
+  - mv spring-boot-webservice.zip deploy/spring-boot-webservice.zip
+
+deploy:
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY
+    secret_access_key: $AWS_SECRET_KEY
+    bucket: spring-boot-build
+    region: ap-northeast-2
+    skip_cleanup: true
+    acl: private
+    local_dir: deploy
+    wait-until-deployed: true
+
 #CI 실행 완료 시 메일로 알람
 notifications:
   email:
