@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/app/step2/zip/
+    overwrite: yes
+
+#version: 0.0
+#- CodeDeploy 버전을 말함.
+#- 프로젝트 버전이 아니므로0.0이외의 버전을 사용하면 오류 발생
+#
+#source
+#- CodeDeploy에서 전달해 준 파일 중 destination으로 이동시킬 대상을 지정함
+#destination
+#- source에서 전송한 파일들이 저장될 위치
+#- jar를 실행하는 등의 작업도 destination에서 진행함
+#overwrite
+#- 덮어쓰기 결정 유무

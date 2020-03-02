@@ -30,6 +30,17 @@ deploy:
     local_dir: deploy
     wait-until-deployed: true
 
+  - provider: codedeploy    #코드 디플로이 provider설정
+    access_key_id: $AWS_ACCESS_KEY  #travisCI 에 등록한 AWS_ACCESS_KEY
+    secret_access_key: $AWS_SECRET_KEY  #travicCI 에 등록된 secret key
+    bucket: spring-boot-build   #s3 버킷 이름
+    key: spring-boot-build.zip   #빌드 파일을 압축해서 전달
+    bundle_type: zip            #압축 확장자
+    application: springboot-v1  #CodeDeploy 이름
+    deployment_group: spring-boot-webservice-v1 #CodeDeploy에 배포 그룹
+    region: ap-northeast-2
+    wait-until-deployed: true
+
 #CI 실행 완료 시 메일로 알람
 notifications:
   email:
