@@ -21,7 +21,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management' //스프링 부트 의존성들을 관리해주는 플러그인
 
 group 'com.spring-boot.peter'
-version '1.0-SNAPSHOT'
+version '1.0.1-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
