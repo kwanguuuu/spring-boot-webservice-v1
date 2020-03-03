@@ -24,7 +24,7 @@ before_deploy:
   - cp scripts/*.sh before-deploy/
   - cp appspec.yml before-deploy/
   - cp build/libs/*.jar before-deploy/
-  - cp before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
+  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
   - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
   - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice-v1.zip   #deploy로 zip파일 이동
 
