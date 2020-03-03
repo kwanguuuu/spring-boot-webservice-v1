@@ -319,11 +319,12 @@ Spring Security Oauth2 Client라이브 러리 사용
 - 자바 버전8로 변경
     - /usr/sbin 의 alternatives --config java 명령 실해ㅑㅇ
     - 자바를 8로 변경
-    - java 7 삭제
+    - java 7 삭제 : sudo yum remove java-1.7.0
 
 2. 타임존 설정
 - UTC인 시간을 KST(한국시간)으로 변경
     - date 명령 입력 시, UTC인것 확인
+    - sudo rm /etc/localtime
     - sudo -s ln /usr/share/zoneinfo/Asia/Seoul /etc/localtime
         - ln : 하드링크나 심볼릭 링크를 만들기 위한 명령어
         - ln -s : 심볼릭 링크를 만듦.
@@ -385,3 +386,207 @@ Spring Security Oauth2 Client라이브 러리 사용
     - gradle이나 maven을 통해 프로젝트 테스트
     - ec2서버에서 해당 프로젝트 실행 및 재실행
 => 위의 과정을 쉘 스크립트를 작성해 해보자.
+
+### 스프링 부트 프로젝트로 RDS 접근하기
+수행해야 할 작업
+- 테이블 생성 : H2 디비가 해주던 걸 MySQL에선 생성해 줘야함.
+- 프로젝트 설정 : 드라이버 설정(추가)
+- EC2설정 : EC2 내부 접속정보 설정
+
+1. 테이블 생성
+JPA 사용 테이블 : 테스트 코드 실행하여 로그를 이용하여 생성
+    - 테스트 코드 실행 결과로 나온, user,posts 테이블 insert
+스프링 세션 테이블 : schema-mysql.sql파일에서 확인
+    - cmd+shift+o 로 schema-mysql.sql 검색 후, 해당 테이블 생성
+
+2. 프로젝트 설정
+- MariaDB 드라이버를 build.gradle에 추가
+- 서버에서 구동할 환경을 추가함. (src/main/resources/application-real.properties)
+- 서버에서 RDS접속정보도 추가함
+
+
+### CI/CD로 배포 자동화 하기
+이전 배포 : 사용자가 직접 ./deploy 실행 후, 변경된 것이 있으면 수정/배포
+
+CI의 규칙
+- 모든 소스코드가 살아있고(실행되고 있고) 누구든 현재의 소스에 접근할 수 있는 단일 지점을 유지할 것
+- 빌드 프로세스를 자동화해서 누구든 소스로부터 시스템을 빌드하는 달일 명령어를 사용할 수 있게금 할 것.
+- 테스팅을 자동화해서 단일 명령어로 언제든지 시스템에 대한 건전한 테스트 수트를 실행할 수 있게 할 것
+- 누구나 현재 실행 파일을 얻으면 지금까지 가장 완전한 실행 파일을 얻었다는 확실을 하게 할 것.
+
+
+트레비스 CI 연동하기. 
+깃에서 제공하는 무료 CI 서비스. 젠킨스(설치형)이기때문에, EC2를 하려면 하나 더 필요함.
+
+### travisCI 자동화 하기
+1. travis웹 서비스 설정
+- https://travis-ci.org에 깃헙 계정으로 로그인, settings로 이동
+2. 프로젝트 검색 후, legacy services integration을 활성화
+3. 프로젝트에 .yml(야믈) 파일 설정해줘야함.
+    - yml : JSON에서 괄호를 제거한 것이랑 같은 형태를 띔.
+    - build.gradle과 같은 위치에 .travis.yml 생성
+    - 빌드 시, repository가 public이어야 함.
+
+### travisCI 와 AWS S3 연동하기
+S3 - aws 파일서버(스토리지) : 정적파일 관리/ 이미지 관리 등
+* travis CI를 AWS 연동 시 구조
+```
+github -> travisCI -> S3로 .jar전달
+                    -> aws CodeDeploy로 배포요청
+                    -> S3 가 CodeDeploy에 jar 전달 -> AWS CodeDeploy 가 EC2에 배포
+                    
+```
+과정
+1. travisCI 와 S3 연동
+    - aws 접근가능 권한 가진 key 발급(IAM)
+    - IAM(Identity and Aceess Management)
+        - IAM 페이지에서 사용자->사용자추가
+        - 사용자 이름설정/ 엑세스 유형(프로그래밍 방식)
+        - 권한: 기존정책 직접 연결 설정
+            - AmazonS3FullAccess, CodeDeployFullAccess 체크 후 추가
+            - 추가한 사용자 access key id를 사용함
+    - travis-ci에 등록한 프로젝트의 environment variable에 
+        - access_key, secret_key 등록
+        - 등록된 key는 .travis.yml에서 사용할 수 있음.
+
+2. s3 버킷사용 (s3 : 파일서버)
+build 파일 저장용 ( 주로 aws 환경 사용하면, 첨부파일 등 저장용으로 씀)
+- 중요 한 것은 버킷 보안의 퍼블릭 엑세스를 차단 할 것.
+
+3. .travis.yml에 관련 코드 추가해주기
+
+4. travis ci와 aws s3, CodeDeploy 연결하기
+ec2가 CodeDeploy를 연동 받을 수 있게 설정하기.
+- ec2에 iam 역할 추가하기.
+    1. iam -> 역할 -> 역할만들기
+    - 역할 : aws서비스에만 할당할 수 있는 권한( ec2, CodeDeploy, SQS등)
+    - 사용자 : AWS 서비스 외에 사용할 수 있는 권한 (로컬PC, IDC 서버 등)
+    2. AWS 서비스 -> EC2
+    3. 권한
+        - AmazoneEC2RoleForAWSCodeDeploy
+        - EC2가 S3버켓에 다운로드 된 것들을 접근할 수 있게 함.EC2에 CodeDeploy Agent 역할 설정 필요
+    4. 태그
+        - 원하는 이름으로 태그 설정
+    5. 역할
+        - 생성할 역할의 이름을 등록하고, 등록정보 확인함
+- 생성한 IAM역할을 EC2서비스에 등록함
+    1. ec2 인스턴스에 들어가, 인스턴스> iam역할 바꾸기를 들어가 역할 설정. 이후 재부팅
+
+- ec2에 codeDeploy 에이전트 설치
+    1. ec2접속해서 해당 명령어 실행
+        - aws s3 s3://aws-codedeploy-ap-northeast-2/latest/install . --region ap-northeast-2
+    2. install  받은 실행에 권한이 없으므로, 권한 부여
+        - chmod +x install
+    3. 권한부여 받은 install 실행
+        - sudo ./install auto
+    4. 실행 확인
+        - sudo service codedeploy-agent status
+
+
+5. CodeDploy를 위한 권한생성
+CodeDeploy에서 EC2에 접근하기 위해 IAM역할을 생성해줌
+    - IAM > 역할 > 역할만들기 > CodeDeploy(기존 서비스에서) > 생성
+
+6. Codedeploy 생성
+AWS 배포 삼형제
+    1. Code commit
+        - 깃허브 같은 코드 저장소 역할을 함
+        - 프라이빗 기능을 지원, 깃헙이랑 거의 기능 동일해 사용 x.
+
+    2. CodeBuild
+        - travisCI 처럼 빌드용 서비스
+        - 젠킨스/팀시티에 대체되어 사용 x.
+
+    3. CodeDeploy
+        - AWS의 배포 서비스
+        - 대체제가 없음.
+        - AUtoScaling 그룹배포, 블루그린 배포, 롤링 배포, EC2 단독 배포등 기능 지원
+
+- CodeDeploy 서비스로 이동해 생성함
+    1. 애플리케이션 생성 
+        - 컴퓨팅 플랫폼 : ec2로 설정
+    2. 배포그룹 생성
+        - 배포그룹 이름, 서비스 역할 설정
+    3. 배포유형 
+        - 현재위치(1대)
+        - 블루.그린 (배포 2대 이상)
+    4. 환경구성
+        - EC2 인스턴스 체크
+    5. 배포설정, 로드밸런서
+        - 배포구성: 한번 배포할 때 몇대의 서버에 배포할 지결정함.
+        - 로드밸런서 : 트래픽 관리 로드밸런싱
+
+- travisCI, s3, codedeploy 연동
+    1. s3에서 넘겨줄 zip 파일을 저장할 디렉토리를 ec2에 생성
+        - mkdir ~/app/step2 && mkdir ~/app/step2/zip
+        - travisCI의 빌드가 끝나면, s3의 zip 파일이 전송되고, 이 파일을 ec2의 ~/app/step2/zip으로 복사해 압축 풀 것.
+
+    2. appspec.yml 작성
+        - aws codedeploy 의 설정
+    3. .travis.yml 에도 CodeDeploy관련 추가
+
+### 배포 자동화 구성
+실제 jar 를 배포해서 실행.
+
+1. deploy.sh 추가.
+- step2에서 실행 될 deploy.sh 를 생성함.
+```
+#!/bin/bash
+
+REPOSITORY=/home/ec2-user/app/step2
+PRJECT_NAME=spring-boot-webservice-v1
+
+echo ">  Build 파일 복사"
+
+cp $REPOSITORY/zip/*.zar $REPOSITORY/
+
+echo "> 현재 구동중인 애플리케이션  pid 확인"
+
+CURRENT_PID=$(pgrep -fl spring-boot-webservice-v1| grep jar | awk '{print $1}')
+
+echo "> 현재 구동중인 애플리케이션 pid : $CURRENT_PID"
+
+if [ -z "$CURRENT_PID" ]; then
+  echo "> 현재 구동중인 애플리케이션이 없으므로 종료하지 않습니다."
+else
+  echo "> kill -15 $CURRENT_PID"
+  kill -15 $CURRENT_PID
+  sleep 5
+fi
+
+echo "> 새 어플리케이션 배포"
+
+JAR_NAME=$(ls -tr $REPOSITORY/*.jar |tail -n 1)
+
+echo "> JAR NAME: $JAR_NAME"
+
+echo ">$JAR_NAME에 실행 권한 추가"
+
+chomod +x $JAR_NAME
+
+echo ">$JAR_NAME 실행"
+
+nohup java -jar \
+  -Dspring.config.location=classpath:/application.properties,classpath:/application-real.properties,/home/ec2-user/app/application-oauth.properties,/home/ec2-user/app/application-real-db.properties \
+  -Dspring.profiles.active=real \
+  $JAR_NAME > $REPOSITORY/nohup.out 2>&1 &
+```
+
+2. .travis.yml 수정
+- 실제로 필요한 파일은 Jar, appspec.yml, 배포 스크립트 등임. 떄문에 프로젝트 모든 파일을 .zip으로 만들지 않기 위해 필요한 것만 선택할 수 있도록 수정
+- before_deploy수정
+    ```
+    # .zip에 담을 파일들만 선택할 수 있도록 수정
+    before_deploy:
+        - mkdir -p before-deploy
+        - cp scripts/*.sh before-deploy/
+        - cp appspec.yml before-deploy/
+        - cp build/libs/*.jar before-deploy/
+        - cp before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
+        - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
+        - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice-v1.zip   #deploy로 zip파일 이동
+    ```
+
+3. appspec.yml 수정
+    - permission : codedeploy에서 ec2로 넘겨준 파일들 모두 권한을 부여함
+    - hooks: codedeploy 단계에서 실행할 명령어를 지정함.
