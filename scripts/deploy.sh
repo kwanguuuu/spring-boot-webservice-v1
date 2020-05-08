@@ -1,7 +1,8 @@
 #!/bin/bash
 
-REPOSITORY=/home/ec2-user/app/step2
-PRJECT_NAME=spring-boot-webservice-v1
+#REPOSITORY=/home/ec2-user/app/step2
+REPOSITORY=/home/ec2-user/app/travis
+PROJECT_NAME=spring-boot-webservice-v1
 
 echo ">  Build 파일 복사"
 
