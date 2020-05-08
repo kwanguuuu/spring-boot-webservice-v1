@@ -15,41 +15,45 @@ script: "./gradlew clean build"
 
 #s3 deploy 관련
 before_deploy:
-#  - zip -r spring-boot-webservice *
-#  - mkdir -p deploy
-#  - mv spring-boot-webservice.zip deploy/spring-boot-webservice.zip
+  - zip -r spring-boot-webservice *
+  - mkdir -p deploy
+  - mv spring-boot-webservice.zip deploy/spring-boot-webservice.zip
 
 # .zip에 담을 파일들만 선택할 수 있도록 수정
-  - mkdir -p before-deploy
-  - cp scripts/*.sh before-deploy/
-  - cp appspec.yml before-deploy/
-  - cp build/libs/*.jar before-deploy/
-  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
-  - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
-  - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice.zip   #deploy로 zip파일 이동
+#  - mkdir -p before-deploy
+#  - cp scripts/*.sh before-deploy/
+#  - cp appspec.yml before-deploy/
+#  - cp build/libs/*.jar before-deploy/
+#  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
+#  - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
+#  - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice.zip   #deploy로 zip파일 이동
 
 
-deploy:
+#deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY
     bucket: spring-boot-build
     region: ap-northeast-2
     skip_cleanup: true
-    acl: private
+#    acl: private
+    acl: public-read
     local_dir: deploy
     wait-until-deployed: true
+    on:
+      repo: kwanguuuu/spring-boot-webservice-v1
+      branch: master
 
-  - provider: codedeploy    #코드 디플로이 provider설정
-    access_key_id: $AWS_ACCESS_KEY  #travisCI 에 등록한 AWS_ACCESS_KEY
-    secret_access_key: $AWS_SECRET_KEY  #travicCI 에 등록된 secret key
-    bucket: spring-boot-build   #s3 버킷 이름
-    key: spring-boot-webservice.zip   #빌드 파일을 압축해서 전달
-    bundle_type: zip            #압축 확장자
-    application: springboot-v1    #CodeDeploy 이름
-    deployment_group: spring-boot-webservice-v1 #CodeDeploy에 배포 그룹
-    region: ap-northeast-2
-    wait-until-deployed: true
+#  - provider: codedeploy    #코드 디플로이 provider설정
+#    access_key_id: $AWS_ACCESS_KEY  #travisCI 에 등록한 AWS_ACCESS_KEY
+#    secret_access_key: $AWS_SECRET_KEY  #travicCI 에 등록된 secret key
+#    bucket: spring-boot-build   #s3 버킷 이름
+#    key: spring-boot-webservice.zip   #빌드 파일을 압축해서 전달
+#    bundle_type: zip            #압축 확장자
+#    application: springboot-v1    #CodeDeploy 이름
+#    deployment_group: spring-boot-webservice-v1 #CodeDeploy에 배포 그룹
+#    region: ap-northeast-2
+#    wait-until-deployed: true
 
 #CI 실행 완료 시 메일로 알람
 notifications:
