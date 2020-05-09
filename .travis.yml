@@ -15,10 +15,10 @@ cache:
 script: "./gradlew clean build"
 
 #s3 deploy 관련
-before_deploy:
-  - zip -r spring-boot-webservice-v1 *
+#before_deploy:
+#  - zip -r spring-boot-webservice-v1 *
   - mkdir -p deploy
-  - mv spring-boot-webservice-v1.zip deploy/spring-boot-webservice-v1.zip
+#  - mv spring-boot-webservice-v1.zip deploy/spring-boot-webservice-v1.zip
 
 # .zip에 담을 파일들만 선택할 수 있도록 수정
 #  - mkdir -p before-deploy
@@ -34,7 +34,8 @@ before_deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY
-    bucket: spring-boot-build
+#    bucket: spring-boot-build
+    bucket: spring-boot-webservice-v1
     region: ap-northeast-2
     skip_cleanup: true
     acl: public-read
