@@ -42,7 +42,7 @@ deploy:
     bucket: spring-boot-build   #s3 버킷 이름
     key: spring-boot-webservice-v1.zip   #빌드 파일을 압축해서 전달
     bundle_type: zip            #압축 확장자
-    application: springboot-v1    #CodeDeploy 이름
+    application: springboot-v2    #CodeDeploy 이름
     deployment_group: springboot-webservice-codedeploy1 #CodeDeploy에 배포 그룹
     region: ap-northeast-2
     wait_until_deployed: true
