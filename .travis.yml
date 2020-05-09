@@ -11,13 +11,14 @@ cache:
   directories:
     - '$HOME/.m2/repository'
     - '$HOME/.gradle'
+
 script: "./gradlew clean build"
 
 #s3 deploy 관련
 before_deploy:
-  - zip -r spring-boot-webservice *
+  - zip -r spring-boot-webservice-v1 *
   - mkdir -p deploy
-  - mv spring-boot-webservice.zip deploy/spring-boot-webservice.zip
+  - mv spring-boot-webservice-v1.zip deploy/spring-boot-webservice-v1.zip
 
 # .zip에 담을 파일들만 선택할 수 있도록 수정
 #  - mkdir -p before-deploy
@@ -36,13 +37,14 @@ before_deploy:
     bucket: spring-boot-build
     region: ap-northeast-2
     skip_cleanup: true
-#    acl: private
     acl: public-read
-    local_dir: deploy
+    #local_dir: deploy
     wait-until-deployed: true
-    on:
-      repo: kwanguuuu/spring-boot-webservice-v1
-      branch: master
+
+
+#    on:
+#      repo: kwanguuuu/spring-boot-webservice-v1
+#      branch: master
 
   - provider: codedeploy    #코드 디플로이 provider설정
     access_key_id: $AWS_ACCESS_KEY  #travisCI 에 등록한 AWS_ACCESS_KEY
