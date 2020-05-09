@@ -49,7 +49,7 @@ deploy:
     application: springboot-v1    #CodeDeploy 이름
     deployment_group: spring-boot-webservice-v1 #CodeDeploy에 배포 그룹
     region: ap-northeast-2
-    wait-until-deployed: true
+    wait_until_deployed: true
 
 #CI 실행 완료 시 메일로 알람
 notifications:
