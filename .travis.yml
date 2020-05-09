@@ -11,10 +11,10 @@ cache:
   directories:
     - '$HOME/.m2/repository'
     - '$HOME/.gradle'
-
 script: "./gradlew clean build"
 
 #s3 deploy 관련
+# .zip에 담을 파일들만 선택할 수 있도록 수정
 before_deploy:
   - mkdir -p before-deploy
   - cp scripts/*.sh before-deploy/
@@ -23,11 +23,6 @@ before_deploy:
   - cd before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
   - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
   - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice-v1.zip   #deploy로 zip파일 이동
-
-  #  - zip -r spring-boot-webservice *
-  #  - mkdir -p deploy
-  #  - mv spring-boot-webservice.zip deploy/spring-boot-webservice.zip
-  # .zip에 담을 파일들만 선택할 수 있도록 수정
 
 
 deploy:
@@ -45,7 +40,7 @@ deploy:
     access_key_id: $AWS_ACCESS_KEY  #travisCI 에 등록한 AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY  #travicCI 에 등록된 secret key
     bucket: spring-boot-build   #s3 버킷 이름
-    key: spring-boot-webservice.zip   #빌드 파일을 압축해서 전달
+    key: spring-boot-webservice-v1.zip   #빌드 파일을 압축해서 전달
     bundle_type: zip            #압축 확장자
     application: springboot-v1    #CodeDeploy 이름
     deployment_group: spring-boot-webservice-v1 #CodeDeploy에 배포 그룹
