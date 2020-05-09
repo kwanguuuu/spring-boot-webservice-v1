@@ -11,41 +11,34 @@ cache:
   directories:
     - '$HOME/.m2/repository'
     - '$HOME/.gradle'
-
 script: "./gradlew clean build"
 
 #s3 deploy 관련
-#before_deploy:
-#  - zip -r spring-boot-webservice-v1 *
-  - mkdir -p deploy
-#  - mv spring-boot-webservice-v1.zip deploy/spring-boot-webservice-v1.zip
+before_deploy:
+  #  - zip -r spring-boot-webservice *
+  #  - mkdir -p deploy
+  #  - mv spring-boot-webservice.zip deploy/spring-boot-webservice.zip
 
-# .zip에 담을 파일들만 선택할 수 있도록 수정
-#  - mkdir -p before-deploy
-#  - cp scripts/*.sh before-deploy/
-#  - cp appspec.yml before-deploy/
-#  - cp build/libs/*.jar before-deploy/
-#  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
-#  - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
-#  - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice.zip   #deploy로 zip파일 이동
+  # .zip에 담을 파일들만 선택할 수 있도록 수정
+  - mkdir -p before-deploy
+  - cp scripts/*.sh before-deploy/
+  - cp appspec.yml before-deploy/
+  - cp build/libs/*.jar before-deploy/
+  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동 후 전체 압축
+  - cd ../ && mkdir -p deploy   #상위 디렉토리로 이동 후 deploy디렉토리 생성
+  - mv before-deploy/before-deploy.zip deploy/spring-boot-webservice-v1.zip   #deploy로 zip파일 이동
 
 
-#deploy:
+deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY
     secret_access_key: $AWS_SECRET_KEY
-#    bucket: spring-boot-build
-    bucket: spring-boot-webservice-v1
+    bucket: spring-boot-build
     region: ap-northeast-2
     skip_cleanup: true
-    acl: public-read
-    #local_dir: deploy
+    acl: private
+    local_dir: deploy
     wait-until-deployed: true
-
-
-#    on:
-#      repo: kwanguuuu/spring-boot-webservice-v1
-#      branch: master
 
   - provider: codedeploy    #코드 디플로이 provider설정
     access_key_id: $AWS_ACCESS_KEY  #travisCI 에 등록한 AWS_ACCESS_KEY
